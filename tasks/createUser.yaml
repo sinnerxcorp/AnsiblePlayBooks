@@ -1,0 +1,21 @@
+---
+#- name: Create user in linux
+  #hosts: myhosts
+  #become: true
+  #  #vars:
+  #  #username: test1
+  #tasks:
+    - name: Create user {{ username }}      
+      user:
+         name: "{{ username }}" # Username
+         state: present
+         createhome: yes # Create the user's home directory
+    - name: check if user created
+      command: id "{{ username }}"
+      register: user_check
+      ignore_errors: true
+              
+    - name: User Created message
+      debug:
+        msg: "User created '{{username }}'"
+      when: user_check.rc == 0

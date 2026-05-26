@@ -1,0 +1,27 @@
+---
+#- name: Verify user in Linux
+  #hosts: myhosts 
+  #become: true
+  #vars_prompt:
+  #  - name: username
+  #    prompt: "Enter username to validate"
+  #    private: no
+  #  tasks:
+    - name: Check if user exists {{ username }}
+      command: id "{{ username }}" 
+      register: user_check
+      ignore_errors: true
+
+    - name: Display user information
+      block:
+        - name: Display termination message
+          debug:
+            msg: "User '{{ username }}' exists."
+        - name: End the Playbook here
+          ansible.builtin.meta: end_play
+      when: user_check.rc == 0
+
+    - name: Display error message if user doesn't exist
+      debug:
+        msg: "User '{{ username }}' does not exist."
+      when: user_check.rc != 0

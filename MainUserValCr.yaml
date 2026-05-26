@@ -1,0 +1,15 @@
+---
+- name: Manage User Creation
+  hosts: ServerNodes 
+  become: yes
+  vars_prompt:
+    - name: username
+      prompt: "Enter username to add"
+      private: no
+  tasks:
+    - name: Process to validate an USER
+      block:
+        - name: Validate User
+          include_tasks: tasks/verifyUser.yaml
+        - name: Create User Account
+          include_tasks: tasks/createUser.yaml

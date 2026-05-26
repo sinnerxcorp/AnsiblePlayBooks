@@ -1,0 +1,18 @@
+ServerNodes:
+  hosts:
+    Node_01:
+      ansible_host: 192.168.1.81
+    Node_02:
+      ansible_host: 192.168.1.82
+
+network:
+  children:
+    NodeServers:
+    DatabaseServers:
+network2:
+  children:
+    TBD:
+    TBD2:
+DataCenter:
+  children:
+    network:
