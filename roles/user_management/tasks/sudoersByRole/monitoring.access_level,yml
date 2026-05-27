@@ -1,0 +1,46 @@
+---
+# monitoring.access_level.yml
+- name: Configure sudoers for Monitoring Team/Tools
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Read-only access for system metrics and logs
+      
+      # Allow reading all logs (critical for monitoring tools)
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/journalctl
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/tail -f /var/log/*
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/cat /var/log/*
+      
+      # Allow process and network status checks (non-intrusive)
+      %{{ group_name }} ALL=(root) NOPASSWD: /bin/ps aux
+      %{{ group_name }} ALL=(root) NOPASSWD: /bin/netstat -tulpn
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/ss -tulpn
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/lsof -i
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/lsof -p *
+      
+      # Allow specific hardware and system info commands
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/iostat
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/vmstat
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/mpstat
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/free
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/df
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/du -s *
+      
+      # Allow smartctl for disk health monitoring (common requirement)
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/sbin/smartctl -a *
+      
+      # Allow specific service status checks (no restarts)
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl status *
+      
+      # Custom allowed commands (e.g., specific agent checks)
+      {% if allowed_commands %}
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% endif %}
+      
+      # Explicitly deny dangerous write operations (defense in depth)
+      # %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl restart *, /usr/bin/systemctl stop *, /usr/bin/rm -rf *   

@@ -1,0 +1,47 @@
+---
+# networking.access_level.yml
+- name: Configure sudoers for Networking Team
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Network Administration: Interface, Routing, Firewall, and Diagnostics
+
+      # Interface Management (ip, ifconfig, ethtool)
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/ip, /sbin/ifconfig, /sbin/ethtool
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/brctl, /sbin/vlan, /sbin/bridge
+
+      # Routing and Table Management
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/route, /sbin/ip route, /sbin/ip rule
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/ss, /sbin/netstat, /usr/bin/lsof -i
+
+      # Firewall Management (iptables, nftables, firewalld)
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/iptables, /sbin/iptables-save, /sbin/iptables-restore
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/ip6tables, /sbin/ip6tables-save, /sbin/ip6tables-restore
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/sbin/nft, /usr/sbin/firewall-cmd
+
+      # Packet Capture and Analysis (Critical for troubleshooting)
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/sbin/tcpdump
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/wireshark, /usr/bin/tshark
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/sbin/ssldump
+
+      # DHCP and DNS Diagnostics
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/dig, /usr/bin/nslookup, /usr/bin/host
+      %{{ group_name }} ALL=(root) NOPASSWD: /sbin/dhclient, /usr/bin/ping, /usr/bin/traceroute, /usr/bin/mtr
+
+      # Service Management for Network Daemons only
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl restart networking, /usr/bin/systemctl restart NetworkManager
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl restart sshd, /usr/bin/systemctl restart firewalld
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl status *
+
+      # Custom allowed commands (e.g., specific vendor CLI tools)
+      {% if allowed_commands %}
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% endif %}
+
+      # Explicitly deny dangerous non-network commands (Defense in Depth)
+      # %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl stop *, /usr/bin/rm -rf /, /usr/bin/passwd
