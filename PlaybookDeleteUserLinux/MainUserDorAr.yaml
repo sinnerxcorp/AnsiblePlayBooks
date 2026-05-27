@@ -1,0 +1,36 @@
+---
+- name: Manage User Delete 
+  hosts: ServerNodes
+  become: true
+  vars_prompt:
+    - name: username
+      prompt: "Enter username to Delete"
+      private: no
+    - name: selectOption
+      prompt: "Enter option to perform: Delete (0) / Archive&Delete (1) / Skip (3)"
+      private: no
+      default: "3"
+  tasks:
+    - name: Process to validate an USER
+      block:
+        - name: Validate User
+          ansible.builtin.include_tasks: tasks/verifyUser.yaml
+
+        - name: Delete User Account (Option 0)
+          ansible.builtin.include_tasks: tasks/deleteUser.yaml
+          when: selectOption == "0"
+
+        - name: Archive & Delete User Account (Option 1)
+          ansible.builtin.include_tasks: tasks/deleteUserKeepFilesarchive.yaml
+          when: selectOption == "1"
+
+        - name: Skip Action (Option 3)
+          ansible.builtin.debug:
+            msg: "No action taken, bye bye!"
+          when: selectOption == "3"
+
+        - name: Invalid Option Warning
+          ansible.builtin.debug:
+            msg: "Invalid option selected. Please choose 0, 1, or 3."
+          when: selectOption not in ["0", "1", "3"] 
+

@@ -1,0 +1,17 @@
+---
+- name: Check user in passwd database
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ username }}"
+    fail_key: false
+  register: user_lookup
+  #changed_when: false
+  # Removed ignore_errors: true because fail_key=false prevents failure
+
+- name: Terminate if user does NOT exist
+  ansible.builtin.meta: end_play
+  when: ansible_facts.getent_passwd is not defined or username not in ansible_facts.getent_passwd
+
+- name: Display user exists
+  ansible.builtin.debug:
+    msg: "User '{{ username }}' does exist."

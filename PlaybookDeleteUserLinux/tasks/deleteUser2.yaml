@@ -1,0 +1,15 @@
+---
+- name: Force remove user even if logged in
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: absent
+    remove: true
+    force: true
+- name: Remove sudoers file
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/'{{ username }}'"
+    state: absent
+- name: Remove SSH authorized keys (if home dir not yet deleted)
+  ansible.builtin.file:
+    path: "/home/'{{ username }}'/.ssh/authorized_keys"
+    state: absent

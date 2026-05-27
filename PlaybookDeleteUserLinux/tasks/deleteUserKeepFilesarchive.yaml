@@ -1,0 +1,62 @@
+#name: Archive User Data to Specific Path
+#  hosts: all
+#  become: true
+#  vars:
+#    target_user: "john"
+#    archive_owner: "archiveUser"
+#    # Creates path: /home/archiveUser/Old/2026-05-26/john
+#    archive_dest: "/home/{{ archive_owner }}/Old/{{ ansible_date_time.date }}/{{ target_user }}"
+#  tasks:
+- name: Ensure archiveUser exists
+  ansible.builtin.user:
+    name: "{{ archive_owner }}"
+    state: present
+    create_home: true
+
+- name: Create archive directory structure
+  ansible.builtin.file:
+    path: "{{ archive_dest }}"
+    state: directory
+    owner: "{{ archive_owner }}"
+    group: "{{ archive_owner }}"
+    mode: '0755'
+
+- name: Find all files owned by the target user
+  ansible.builtin.find:
+    paths:
+      - /home
+      - /var
+      - /tmp
+      - /opt
+    file_type: any
+    owner: "{{ target_user }}"
+    recurse: true
+    excludes:
+      - "/home/{{ archive_owner }}" # Prevent archiving the archive itself
+  register: user_files
+  failed_when: false
+
+- name: Move files to archive and change ownership
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ archive_dest }}{{ item.path }}"
+    remote_src: true
+    owner: "{{ archive_owner }}"
+    group: "{{ archive_owner }}"
+    mode: preserve
+    force: true
+  loop: "{{ user_files.files }}"
+  when: user_files.files | length > 0
+
+- name: Remove original files after successful move
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ user_files.files }}"
+  when: user_files.files | length > 0
+
+- name: Remove the user account
+  ansible.builtin.user:
+    name: "{{ target_user }}"
+    state: absent
+    remove: true

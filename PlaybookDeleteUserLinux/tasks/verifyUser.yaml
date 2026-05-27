@@ -1,0 +1,21 @@
+---
+- name: Check if user exists {{ username }}
+  command: id "{{ username }}"
+  register: user_check
+    #ignore_errors: true
+  changed_when: false
+  failed_when: false
+
+- name: Display user information
+  block:
+    - name: Display termination message
+      debug:
+        msg: "User '{{ username }}' does not exist."
+    - name: End the Playbook here
+      ansible.builtin.meta: end_host
+  when: user_check.rc != 0
+
+- name: Display error message if user doesn't exist
+  debug:
+    msg: "User '{{ username }}' does exist."
+  when: user_check.rc == 0

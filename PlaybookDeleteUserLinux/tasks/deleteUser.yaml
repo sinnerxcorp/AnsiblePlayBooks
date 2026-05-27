@@ -1,0 +1,47 @@
+---
+# 1. Primary Action: Force Remove User (Deletes account + home dir)
+- name: Force remove user even if logged in
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: absent
+    remove: true
+    force: true
+  register: user_removal
+
+# 2. Validation: Remove Sudoers (If left behind)
+- name: Validate and remove sudoers file
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/{{ username }}"
+    state: absent
+  # Runs regardless of previous result to ensure cleanup
+
+# 3. Validation: Remove SSH Keys (If home dir removal failed partially)
+# Note: Usually removed with home dir, but this ensures no orphaned keys if /home was separate
+- name: Validate and remove SSH authorized keys
+  ansible.builtin.file:
+    path: "/home/{{ username }}/.ssh/authorized_keys"
+    state: absent
+  ignore_errors: true
+  # Expected to fail if home dir was successfully deleted, but safe to ignore
+
+# 4. Optional: Verify user is truly gone
+- name: Final Verification
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ username }}"
+    fail_key: false
+  register: final_check
+# 5. Wait for 10 seconds to ensure system sync
+- name: Wait for 10 seconds
+  ansible.builtin.wait_for:
+    timeout: 10
+- name: Check if user exists with id
+  ansible.builtin.command: id "{{ username }}"
+  register: id_result
+  ignore_errors: true
+  changed_when: false
+
+- name: Fail if user exists
+  ansible.builtin.fail:
+    msg: "User {{ username }} still exists!"
+  when: id_result.rc == 0
