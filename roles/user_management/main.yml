@@ -1,0 +1,29 @@
+# roles/user_management/tasks/main.yml
+---
+- name: Create User
+  ansible.builtin.include_tasks: create_user.yml
+  when: action == "create_user"
+
+- name: Delete User
+  ansible.builtin.include_tasks: delete_user.yml
+  when: action == "delete_user"
+
+- name: Create Group
+  ansible.builtin.include_tasks: create_group.yml
+  when: action == "create_group"
+
+- name: Add User to Group
+  ansible.builtin.include_tasks: add_to_group.yml
+  when: action == "add_to_group"
+
+- name: Delete Group
+  ansible.builtin.include_tasks: delete_group.yml
+  when: action == "delete_group"
+
+- name: Create SSH Key
+  ansible.builtin.include_tasks: create_ssh_key.yml
+  when: action == "create_ssh_key"
+
+- name: Delete SSH Key
+  ansible.builtin.include_tasks: delete_ssh_key.yml
+  when: action == "delete_ssh_key"

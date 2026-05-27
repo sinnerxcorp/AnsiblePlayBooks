@@ -1,0 +1,6 @@
+---
+# roles/user_management/tasks/delete_group.yml
+- name: Delete Group
+  ansible.builtin.group:
+    name: "{{ group_name }}"
+    state: absent

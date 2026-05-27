@@ -1,0 +1,8 @@
+---
+# roles/user_management/tasks/delete_user.yml
+- name: Delete User
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: absent
+    remove: "{{ remove_home | default(false) }}"
+    force: yes

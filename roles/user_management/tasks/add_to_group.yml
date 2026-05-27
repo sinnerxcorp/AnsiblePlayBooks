@@ -1,0 +1,7 @@
+---
+# roles/user_management/tasks/add_to_group.yml
+- name: Add User to Group
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: "{{ group_name }}"
+    append: yes

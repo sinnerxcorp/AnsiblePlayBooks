@@ -1,0 +1,10 @@
+---
+# roles/user_management/tasks/create_user.yml
+- name: Create User
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: present
+    create_home: yes
+    shell: "{{ user_shell | default('/bin/bash') }}"
+    groups: "{{ user_groups | default([]) }}"
+    append: yes

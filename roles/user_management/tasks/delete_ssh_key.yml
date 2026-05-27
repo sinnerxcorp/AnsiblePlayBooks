@@ -1,0 +1,6 @@
+---
+# roles/user_management/tasks/delete_ssh_key.yml
+- name: Delete SSH Key for User
+  ansible.builtin.file:
+    path: "/home/{{ username }}/{{ ssh_key_file | default('.ssh/id_rsa') }}"
+    state: absent

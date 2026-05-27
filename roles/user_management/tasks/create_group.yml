@@ -1,0 +1,7 @@
+---
+# roles/user_management/tasks/create_group.yml
+- name: Create Group
+  ansible.builtin.group:
+    name: "{{ group_name }}"
+    state: present
+    gid: "{{ group_gid | default(omit) }}"
