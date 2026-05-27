@@ -1,0 +1,19 @@
+---
+# dbasysadm.access_level.yml
+- name: Configure sudoers for DBA Sysadmins
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Allow full control as postgres user
+      %{{ group_name }} ALL=(postgres) NOPASSWD: ALL
+      # Allow service management for PostgreSQL only
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl start postgresql*, /usr/bin/systemctl stop postgresql*, /usr/bin/systemctl restart postgresql*
+      # Allow specific DB tools if defined, otherwise default to safe commands
+      {% if allowed_commands %}
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% endif %}

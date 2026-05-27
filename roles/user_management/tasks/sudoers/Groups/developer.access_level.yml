@@ -1,0 +1,21 @@
+# developer.access_level.yml
+- name: Configure sudoers for Developers
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Restricted access: App management and logs only
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl restart app-*, /usr/bin/systemctl status app-*
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/journalctl -u app-*, /usr/bin/tail -f /var/log/app/*
+      # Docker access if required
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/docker logs *, /usr/bin/docker restart *
+      # Explicitly allowed custom commands
+      {% if allowed_commands %}
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% else %}
+      # No extra commands defined
+      {% endif %}   

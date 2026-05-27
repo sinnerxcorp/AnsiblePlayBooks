@@ -1,0 +1,21 @@
+---
+# security.access_level.yml
+- name: Configure sudoers for Security Team
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Security auditing commands
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/ausearch, /usr/bin/aureport, /usr/bin/journalctl
+      # Firewall and security service management
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl restart firewalld, /usr/bin/systemctl restart fail2ban
+      # Custom allowed commands
+      {% if allowed_commands %}
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% endif %}
+      # Require password for security team (optional safety measure)
+      # Remove NOPASSWD above if you want to enforce password entry

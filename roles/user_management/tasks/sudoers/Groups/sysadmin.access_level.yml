@@ -1,0 +1,18 @@
+---
+# sysadmin.access_level.yml
+- name: Configure sudoers for System Administrators
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Full administrative access
+      %{{ group_name }} ALL=(ALL) NOPASSWD: ALL
+      # Specific overrides or restrictions can be added below if needed
+      {% if allowed_commands %}
+      # Additional specific commands (redundant if ALL is granted, but explicit)
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% endif %}

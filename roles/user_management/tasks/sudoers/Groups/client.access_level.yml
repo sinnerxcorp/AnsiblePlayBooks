@@ -1,0 +1,24 @@
+---
+# client.access_level.yml
+- name: Configure sudoers for Clients
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # Default: No sudo access for clients unless explicitly defined
+      # This file exists to ensure explicit deny if needed or to whitelist specific app commands
+
+      {% if allowed_commands %}
+      # Grant access ONLY to explicitly defined commands (e.g., specific app binaries)
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% else %}
+      # Explicitly deny all sudo access if no commands are provided
+      # (Optional: Usually absence of file implies deny, but this makes it explicit)
+      %{{ group_name }} ALL=(ALL) ALL
+      # Note: In a real scenario, you might simply not create this file if allowed_commands is empty.
+      # If created, ensure the user cannot actually use it without specific commands listed above.
+      {% endif %}

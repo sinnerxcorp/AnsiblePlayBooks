@@ -1,0 +1,28 @@
+---
+# tester.access_level.yml
+- name: Configure sudoers for Testers
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: '/usr/sbin/visudo -cf %s'
+    content: |
+      # Sudoers for {{ group_name }} - Managed by Ansible
+      # QA/Testers: Access to restart test services and view logs
+
+      # Allow restarting specific test environments or apps
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl restart test-*, /usr/bin/systemctl restart app-test
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl status test-*, /usr/bin/systemctl status app-test
+
+      # Allow reading logs for debugging (journalctl and specific log files)
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/journalctl -u test-*, /usr/bin/journalctl -u app-test
+      %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/tail -f /var/log/test/*, /usr/bin/grep -r /var/log/test/
+
+      # Allow database reset commands if needed for testing (example: pg_resetwal or specific scripts)
+      {% if allowed_commands %}
+      %{{ group_name }} ALL=(root) NOPASSWD: {{ allowed_commands | join(', ') }}
+      {% endif %}
+
+      # Explicitly deny dangerous commands (defense in depth, though defaults usually cover this)
+      # %{{ group_name }} ALL=(root) NOPASSWD: /usr/bin/systemctl stop production-*, /usr/bin/rm -rf /
