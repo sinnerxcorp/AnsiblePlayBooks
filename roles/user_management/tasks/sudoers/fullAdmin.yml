@@ -1,0 +1,8 @@
+---
+- name: Grant full sudo access to the admin group
+  community.general.sudoers:
+    name: admin_full_access      # Creates /etc/sudoers.d/admin_full_access
+    group: admin                 # Corresponds to %admin
+    commands: ALL
+    nopassword: false            # Users must enter their password
+    state: present

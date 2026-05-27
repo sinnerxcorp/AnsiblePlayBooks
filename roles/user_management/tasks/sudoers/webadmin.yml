@@ -1,0 +1,10 @@
+# roles/user_management/tasks/add_sudoers_group.yml
+- name: Add group to sudoers with specific access
+  ansible.builtin.copy:
+    content: |
+      #%{{ group_name }} ALL=(ALL) {{ sudo_access_type | default('NOPASSWD: ALL') }}
+    dest: "/etc/sudoers.d/{{ group_name }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: /usr/sbin/visudo -cf %s

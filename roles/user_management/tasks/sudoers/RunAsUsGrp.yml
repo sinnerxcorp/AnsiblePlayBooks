@@ -1,0 +1,9 @@
+---
+- name: Apply sudoers rules per group definition
+  ansible.builtin.include_tasks: "{{ item.access_level }}.yml"
+  loop: "{{ sudo_groups }}"
+  loop_control:
+    label: "Configuring {{ item.name }} with {{ item.access_level }}"
+  vars:
+    group_name: "{{ group.name }}"
+    allowed_commands: "{{ item.commands | default([]) }}"

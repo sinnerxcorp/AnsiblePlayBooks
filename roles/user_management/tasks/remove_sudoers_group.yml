@@ -1,0 +1,5 @@
+# roles/user_management/tasks/remove_sudoers_group.yml
+- name: Remove group from sudoers
+  ansible.builtin.file:
+    path: "/etc/sudoers.d/{{ group_name }}"
+    state: absent

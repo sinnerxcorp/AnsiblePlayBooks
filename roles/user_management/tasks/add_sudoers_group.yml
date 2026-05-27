@@ -1,0 +1,11 @@
+---
+# roles/user_management/tasks/add_sudoers_group.yml
+
+- name: Include specific sudoers configuration based on access type
+  ansible.builtin.include_tasks: "{{ sudo_access_type }}.yml"
+  vars:
+    group_name: "{{ group.name }}"
+    allowed_commands: "{{ item.commands | default([]) }}"
+  loop: "{{ sudo_groups }}"
+  loop_control:
+    label: "{{ group.name }} ({{ sudo_access_type }})"

@@ -1,0 +1,6 @@
+- name: Allow monitoring group to run metrics script without password
+  community.general.sudoers:
+    name: monitoring_metrics
+    group: monitoring
+    commands: /usr/local/bin/gather-app-metrics
+    nopassword: true             # Enables NOPASSWD
